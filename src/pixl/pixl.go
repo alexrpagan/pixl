@@ -1,6 +1,7 @@
 package pixl
 
 import (
+    // "fmt"
     "image"
     "image/png"
     "image/color"
@@ -96,19 +97,38 @@ func (p *Pixl) Swap(x1, y1, x2, y2 int) error {
 }
 
 // fisher-yates-ish shuffle
-func (p *Pixl) Shuffle(f func(x1, y1, x2, y2 int) bool) error {
+func (p *Pixl) Shuffle(f func(p *Pixl, x1, y1, x2, y2 int) bool) error {
+
     bounds := p.Image.Bounds()
     height := bounds.Dy()
-    for x := p.NumBlocks - 1; x > 0; x-- {
-        for y := (height / p.BlockSize) - 1 ; y > 0 ; y-- {
-            x2 := rand.Int() % x
-            y2 := rand.Int() % y
-            if f(x, y, x2, y2) {
-                p.Swap(x, y, x2, y2)
-            }
+    numRow := (height / p.BlockSize)
+
+    for i:= p.NumBlocks * numRow - 1; i > 0; i-- {
+        x1, y1 := p.GetXY(i)
+
+        j := rand.Int() % i
+        x2, y2 := p.GetXY(j)
+
+        if f(p, x1, y1, x2, y2) {
+            p.Swap(x1, y1, x2, y2)
         }
     }
+
     return nil
+}
+
+func (p *Pixl) GetXY(bn int) (x int, y int) {
+
+    bounds := p.Image.Bounds()
+    height := bounds.Dy()
+    numRow := (height / p.BlockSize)
+
+    bn++
+
+    x = (bn % p.NumBlocks) - 2
+    y = (bn / numRow)
+
+    return x, y
 }
 
 // Gets the bounding box for a specific block

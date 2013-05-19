@@ -25,9 +25,6 @@ type Pixeler interface {
     // Down-sample image based on desired resolution and aggregate function
     Pixelate(nb int, f func (x, y int, p *Pixeler) color.Color) error
 
-    // Crop image to correct size
-    Crop()
-
     // swap two tiles of a pixeled image
     Swap(x1, y1, x2, y2 int) error
 

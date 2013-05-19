@@ -1,16 +1,12 @@
 package pixl
 
 import (
-
-    // "fmt "
     "image"
     "image/png"
     "image/color"
     "image/draw"
     "io"
     "math/rand"
-
-    // _ "code.google.com/p/vp8-go/webp"
     _ "image/jpeg"
 )
 

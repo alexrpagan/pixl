@@ -1,7 +1,7 @@
 package pixl
 
 import (
-    // "fmt"
+    "time"
     "image"
     "image/png"
     "image/color"
@@ -13,25 +13,21 @@ import (
 
 type Pixeler interface {
 
-    // Read in an image
     Decode(r io.Reader) error
 
-    // Write out an image
     Encode(w io.Writer) error
 
     // Down-sample image based on desired resolution and aggregate function
     Pixelate(nb int, f func (x, y int, p *Pixeler) color.Color) error
 
-    // swap two tiles of a pixeled image
+    // swap two tiles
     Swap(x1, y1, x2, y2 int) error
 
     // Rearrange tiles, using f to bias the shuffle
     Shuffle(f func(x1, y1, x2, y2 int) bool) error
 
-    // Get the rectangle that bounds the indicated block
     GetBlock(x, y int) image.Rectangle
 
-    // Fills a certain block with given color
     FillBlock(x, y int, c color.Color)
 
 }
@@ -99,16 +95,15 @@ func (p *Pixl) Swap(x1, y1, x2, y2 int) error {
 // fisher-yates-ish shuffle
 func (p *Pixl) Shuffle(f func(p *Pixl, x1, y1, x2, y2 int) bool) error {
 
+    rand.Seed(time.Now().UnixNano())
+
     bounds := p.Image.Bounds()
     height := bounds.Dy()
     numRow := (height / p.BlockSize)
 
     for i:= p.NumBlocks * numRow - 1; i > 0; i-- {
         x1, y1 := p.GetXY(i)
-
-        j := rand.Int() % i
-        x2, y2 := p.GetXY(j)
-
+        x2, y2 := p.GetXY(rand.Int() % (i + 1))
         if f(p, x1, y1, x2, y2) {
             p.Swap(x1, y1, x2, y2)
         }
@@ -118,16 +113,8 @@ func (p *Pixl) Shuffle(f func(p *Pixl, x1, y1, x2, y2 int) bool) error {
 }
 
 func (p *Pixl) GetXY(bn int) (x int, y int) {
-
-    bounds := p.Image.Bounds()
-    height := bounds.Dy()
-    numRow := (height / p.BlockSize)
-
-    bn++
-
-    x = (bn % p.NumBlocks) - 2
-    y = (bn / numRow)
-
+    x = (bn % p.NumBlocks)
+    y = (bn / p.NumBlocks)
     return x, y
 }
 

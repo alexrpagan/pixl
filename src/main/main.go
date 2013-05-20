@@ -3,6 +3,7 @@ package main
 import (
     "fmt"
     "pixl"
+    "time"
     "math/rand"
     "flag"
     "os"
@@ -16,6 +17,7 @@ var shuffle   = flag.Bool("s", false, "shuffle the pixels?")
 var blocksize = flag.Int("b", 10, "blocksize")
 
 func random (x, y int, p *pixl.Pixl) color.Color {
+    rand.Seed(time.Now().UnixNano())
     subImg := p.Image.SubImage(p.GetBlock(x, y))
     bounds := subImg.Bounds()
     offsetX := rand.Int() % p.BlockSize
@@ -23,8 +25,13 @@ func random (x, y int, p *pixl.Pixl) color.Color {
     return p.Image.At(bounds.Min.X + offsetX, bounds.Min.Y + offsetY)
 }
 
-func unbiased (x1, y1, x2, y2 int) bool {
+func unbiased (p *pixl.Pixl, x1, y1, x2, y2 int) bool {
     return true
+}
+
+func bluey (p *pixl.Pixl, x1, y1, x2, y2 int) bool {
+    _, _, b1, _ := random(x1, y1, p).RGBA()
+    return b1 < 30000
 }
 
 func main () {

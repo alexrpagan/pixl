@@ -17,7 +17,6 @@ var shuffle   = flag.Bool("s", false, "shuffle the pixels?")
 var blocksize = flag.Int("b", 10, "blocksize")
 
 func random (x, y int, p *pixl.Pixl) color.Color {
-    rand.Seed(time.Now().UnixNano())
     subImg := p.Image.SubImage(p.GetBlock(x, y))
     bounds := subImg.Bounds()
     offsetX := rand.Int() % p.BlockSize
@@ -35,6 +34,8 @@ func bluey (p *pixl.Pixl, x1, y1, x2, y2 int) bool {
 }
 
 func main () {
+
+    rand.Seed(time.Now().UnixNano())
 
     flag.Parse()
 
@@ -56,6 +57,8 @@ func main () {
         if *shuffle {
             pix.Shuffle(unbiased)
         }
+
+        pix.SortRows()
 
         outf, err := os.Create(*output)
         if err == nil {

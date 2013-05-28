@@ -9,6 +9,7 @@ import (
 	"flag"
 	"os"
 	"bufio"
+	"image"
 	"image/color"
 
 	"x-go-binding/ui"
@@ -22,19 +23,19 @@ import (
 var input = flag.String("i", "", "input file")
 var output = flag.String("o", "out.png", "output file")
 var shuffle   = flag.Bool("s", false, "shuffle the pixels?")
-var sortrows  = flag.Bool("sr", false, "sort the rows?")
 var blocksize = flag.Int("b", 10, "blocksize")
 var iters = flag.Int("iters", 0, "number of iterations of clustering algorithm to perform")
+var freq = flag.Float64("f", .1, "Fraction of tiles to swap on each iteration of algo")
 
-func random (x, y int, p *pixl.Pixl) color.Color {
-	subImg := p.Image.SubImage(p.GetBlock(x, y))
+func random (bl image.Point, p *pixl.Pixl) color.Color {
+	subImg := p.Image.SubImage(p.GetBlock(bl))
 	bounds := subImg.Bounds()
 	offsetX := rand.Int() % p.BlockSize
 	offsetY := rand.Int() % p.BlockSize
 	return p.Image.At(bounds.Min.X + offsetX, bounds.Min.Y + offsetY)
 }
 
-func unbiased (p *pixl.Pixl, x1, y1, x2, y2 int) bool {
+func unbiased (p *pixl.Pixl, p1, p2 image.Point) bool {
 	return true
 }
 
@@ -91,7 +92,7 @@ func main () {
 	// run the clustering algo iters times
 	if *iters != 0 {
 		for i:=0; i < *iters; i++ {
-			pix.DoStep(5, euclid)
+			pix.DoStep(*freq, euclid)
 			fmt.Println(i)
 		}
 	}
@@ -102,7 +103,7 @@ func main () {
 		switch e := e.(type) {
 		case ui.KeyEvent:
 			if e.Key == ' ' { // perform another iteration
-				pix.DoStep(5, euclid)
+				pix.DoStep(*freq, euclid)
 				pix.WriteToScreen()
 			} else if e.Key == 's' { // save image
 				outf, err := os.Create(*output)
